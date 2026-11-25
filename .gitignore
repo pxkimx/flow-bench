@@ -1,0 +1,25 @@
+# environments, caches, logs
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.log
+.DS_Store
+# built app and release files
+*.app/
+*.zip
+dist/
+build/
+# never publish user data or results
+*.fcs
+*.pzfx
+*.flowbench
+*.xlsx
+exports/
+.claude/
+# the Gating-ML reference set is fetched by scripts/fetch_test_data.sh
+tests/data/
+# internal notes and design studies for the building session (not part of the tool)
+PLAN.md
+design/
