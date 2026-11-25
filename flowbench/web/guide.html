@@ -1,0 +1,243 @@
+<div class="guide">
+<nav class="toc" aria-label="Tutorial sections"><h5>Tutorial</h5><div id="guideToc"></div></nav>
+<article>
+<header class="ghead">
+  <h1>From raw files to a figure and a table</h1>
+  <p class="lead">This page takes you from the files your cytometer wrote to gates you can defend, a graph and a table. It assumes you have never analysed flow data. Each step says what to do, where to click, and why.</p>
+  <div class="strip"><span>Files</span><span>Roles and groups</span><span>Cells</span><span>Singlets</span><span>Live</span><span>Compensation</span><span>Scales</span><span>Marker gates</span><span>Checks</span><span>Numbers</span><span>Groups</span><span>Export</span></div>
+  <p class="small">In a hurry? <button class="lk" data-ex="fuchi">Open the example data</button> and follow <a href="#g-example">the ten-minute walk-through</a>.</p>
+</header>
+
+<section id="g-start"><h2>1. Before you begin: what should be in your folder</h2>
+<p>A flow cytometer measures one cell at a time as it passes a laser, and writes one <b>FCS file</b> per tube or well. Each row in the file is one <b>event</b> (usually one cell) and each column is one measurement: how much light the cell scattered, and how bright it was in each colour.</p>
+<p>The tubes you want to study are not enough by themselves. Controls tell you where "negative" ends and "positive" begins.</p>
+<table class="gt2"><tr><th>Tube</th><th>What is in it</th><th>The question it answers</th></tr>
+<tr><td>Study samples</td><td>Your cells with every stain</td><td>What you want to know</td></tr>
+<tr><td>Unstained</td><td>The same cells, no stain</td><td>How bright are the cells with nothing added?</td></tr>
+<tr><td>Single-stain, one per colour</td><td>Cells or beads with one stain only</td><td>How much of this colour leaks into the other detectors?</td></tr>
+<tr><td>FMO (fluorescence minus one)</td><td>Every stain except one</td><td>Where does negative end for the missing colour, once all the others are there?</td></tr>
+<tr><td>Viability dye, in every tube</td><td>A dye only dead cells take up</td><td>Which cells were dead?</td></tr></table>
+<div class="why"><b>Why it matters.</b> A gate drawn without a control is a guess. If you did not run a control, you can still analyse the data, but Flow Bench will say so in its checks and you should say so too [1, 4].</div>
+<p class="small">One colour only, such as a single GFP reporter? You need the study samples and a tube of the same cells without the reporter. You can skip compensation.</p>
+</section>
+
+<section id="g-load"><h2>2. Load the files and tell Flow Bench what each one is</h2>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>On the <button class="lk" data-go="Home">Home</button> tab, press <b>Add folder</b> and choose the folder, or drag the files onto the window. Nothing is copied to the internet and your files are never changed.</li>
+<li>Open the <button class="lk" data-go="Data">Data</button> tab. Each file has a <b>Role</b>. Flow Bench guesses it from the file name; correct any that are wrong. For a single-stain or FMO control, also pick its <b>Stained channel</b>.</li>
+<li>Give each study sample a <b>Group</b>: the condition it belongs to, such as Control or Treated. Use exactly the same spelling for files in the same group.</li>
+<li>Untick <b>Use</b> for a file you want to keep out of the statistics, such as a failed tube.</li></ol></div>
+<div class="why"><b>Why groups matter.</b> The statistics and the Prism tables are built from groups. Each file in a group counts as one replicate: one animal, one culture, one donor.</div>
+</section>
+
+<section id="g-plots"><h2>3. How to read a plot</h2>
+<div class="figrow"><figure class="fig"><svg data-fig="plot" viewBox="0 0 260 190" role="img" aria-label="A density plot: each dot is one cell, and red marks where most cells are"></svg><figcaption>A density plot. Each dot is one cell. Blue means few cells, green more, red the most.</figcaption></figure>
+<figure class="fig"><svg data-fig="hist" viewBox="0 0 260 190" role="img" aria-label="A histogram: brightness along the bottom, number of cells as height"></svg><figcaption>A histogram shows one measurement. Brightness runs left to right; height is how many cells have that brightness.</figcaption></figure></div>
+<p>A <b>population</b> is a cloud of cells that sit together. A <b>gate</b> is a shape you draw around a cloud to say "these cells". The cells inside become a new population that you can plot and gate again. Analysis is a short chain of gates, each one removing something you do not want, until the last gate holds the cells you care about.</p>
+<p>The name on each axis is a button. Click it to change what the axis shows.</p>
+</section>
+
+<section id="g-cells"><h2>4. First gate: find the cells</h2>
+<figure class="fig wide"><svg data-fig="cells" viewBox="0 0 260 190" role="img" aria-label="Forward scatter against side scatter with debris in the bottom left corner and a gate around the cells"></svg><figcaption>Forward scatter (FSC-A) rises with cell size. Side scatter (SSC-A) rises with what is inside the cell: granules, a complex nucleus. Debris is small, so it sits in the bottom left corner.</figcaption></figure>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>The first plot is already there: <b>FSC-A</b> against <b>SSC-A</b>, all events.</li>
+<li>On the <button class="lk" data-go="Gating">Gating</button> tab choose <b>Polygon</b>. Click around the main cloud, one corner at a time. Click the first corner again to close it. Press Esc to start over.</li>
+<li>Name it <b>Cells</b>.</li></ol></div>
+<div class="why"><b>Why a loose gate.</b> This gate has one job: remove debris and the events stuck at the edges of the plot. Draw it generously. A tight scatter gate can throw away the very cells you are studying, because activated, dividing or dying cells change size [1]. Leave the fine decisions to the later gates.</div>
+</section>
+
+<section id="g-singlets"><h2>5. Second gate: single cells only</h2>
+<figure class="fig wide"><svg data-fig="singlets" viewBox="0 0 260 190" role="img" aria-label="Forward scatter area against height: single cells on a diagonal line, doublets below and to the right of it"></svg><figcaption>Each cell gives a pulse of light. For a single cell, the pulse's area and height rise together, so single cells lie on a diagonal. Two cells stuck together give more area for the same height, so they fall off the line.</figcaption></figure>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>Click the <b>Cells</b> gate, then <b>Open plot</b> (or double-click the gate). A new plot shows only the cells inside it.</li>
+<li>If its axes are not already <b>FSC-A</b> and <b>FSC-H</b>, click the axis names and choose them.</li>
+<li>Draw a <b>Polygon</b> along the diagonal. Name it <b>Singlets</b>.</li></ol></div>
+<div class="why"><b>Why it matters.</b> Two cells passing together are read as one cell with the colours of both. A green cell stuck to a red cell looks like a cell that is both, which does not exist. Doublets also look like cells with twice the DNA [7].</div>
+<p class="small">No FSC-H in your files? Use FSC-A against FSC-W, or SSC-A against SSC-H. The idea is the same.</p>
+</section>
+
+<section id="g-live"><h2>6. Third gate: living cells, if you used a viability dye</h2>
+<figure class="fig wide"><svg data-fig="live" viewBox="0 0 260 190" role="img" aria-label="Histogram of a viability dye: a large dim peak of live cells and a small bright peak of dead cells, with a range gate over the dim peak"></svg><figcaption>Dead cells take up the dye and are bright. Live cells keep it out and are dim. Gate the dim peak.</figcaption></figure>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>Click the <b>Singlets</b> gate. On the <button class="lk" data-go="Insert">Insert</button> tab press <b>Histogram</b>, then click the axis name and choose the channel of your viability dye.</li>
+<li>On the Gating tab choose <b>Range</b> and drag across the dim peak. Name it <b>Live</b>.</li></ol></div>
+<div class="why"><b>Why it matters.</b> Dead cells soak up antibodies and glow in many colours at once. Left in, they show up as false positives in almost every gate that follows [1]. If you did not use a viability dye, skip this step and say so when you report the result.</div>
+</section>
+
+<section id="g-comp"><h2>7. Compensation: taking one colour out of another's detector</h2>
+<figure class="fig wide"><svg data-fig="comp" viewBox="0 0 400 190" role="img" aria-label="Two plots of a single-stain control: before compensation the bright cells climb diagonally, after compensation they sit level with the dim cells"></svg><figcaption>A control stained with one colour only. Left: its light also reaches the neighbouring detector, so the bright cells climb. Right: after compensation they sit level with the dim cells.</figcaption></figure>
+<p>No dye glows in a single pure colour. Some of the light from one dye lands in the detector meant for another. This is <b>spillover</b>. Compensation subtracts it, using the single-stain controls to measure how much to subtract [2].</p>
+<table class="gt2"><tr><th>Your situation</th><th>Choose, on the <button class="lk" data-go="Compensation">Compensation</button> tab</th><th>Why</th></tr>
+<tr><td>Compensation was set up on the cytometer when the tubes were run</td><td><b>Matrix in each file</b></td><td>The cytometer stored its matrix in every file. This is the usual case.</td></tr>
+<tr><td>It was not, but you ran single-stain controls</td><td><b>From controls</b></td><td>Flow Bench works the matrix out from the controls you marked on the Data tab.</td></tr>
+<tr><td>The stored matrix is nearly right but one pair is off</td><td><b>Copy file matrix</b>, then click that cell and type a new value</td><td>You keep the cytometer's matrix and correct one number. Do this only with the single-stain control in front of you.</td></tr>
+<tr><td>One colour only, or colours that do not overlap</td><td><b>None</b></td><td>There is nothing to subtract.</td></tr></table>
+<div class="do"><b>Check it</b><ol>
+<li>On the Compensation tab, click a cell of the matrix. Two plots appear for that pair of colours: as measured, and compensated.</li>
+<li>Look at the single-stain control. In the compensated plot its bright cells should be level with its dim cells.</li>
+<li>If the bright cells still climb, the pair is <b>under-compensated</b>. If they dip below the dim cells, it is <b>over-compensated</b>. Flow Bench lists pairs that are off and by how much.</li></ol></div>
+<div class="why"><b>Why it matters.</b> Without compensation, cells that are bright in one colour look positive in the next one too. A wrong matrix does the same thing more quietly. Compensation does not remove the spreading of a bright population; that is why FMO controls are still needed (step 9) [2, 4].</div>
+</section>
+
+<section id="g-scales"><h2>8. Scales: why fluorescence is not drawn on a ruler</h2>
+<figure class="fig wide"><svg data-fig="scale" viewBox="0 0 400 190" role="img" aria-label="The same dim population on a log scale, where half of it is piled on the axis, and on a logicle scale, where it is a whole cloud centred on zero"></svg><figcaption>The same unstained cells. On a log scale, cells at or below zero cannot be drawn and pile up on the axis. On a logicle scale the cloud is whole and centred on zero.</figcaption></figure>
+<table class="gt2"><tr><th>Scale</th><th>Use it for</th><th>Why</th></tr>
+<tr><td><b>Linear</b></td><td>Scatter (FSC, SSC), time, DNA content</td><td>These do not span a huge range, and a doubling should look like a doubling.</td></tr>
+<tr><td><b>Logicle</b> (Flow Bench's choice for fluorescence)</td><td>Antibody stains and reporters</td><td>Bright cells can be ten thousand times brighter than dim ones, so the top is drawn like a log scale. Near zero it is drawn like a ruler, so cells at or below zero stay visible [3].</td></tr>
+<tr><td><b>Log</b></td><td>Rarely</td><td>It cannot show zero or negative values, which compensated data always has.</td></tr>
+<tr><td><b>Arcsinh</b></td><td>If your lab already uses it</td><td>Much like logicle, with different settings.</td></tr></table>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>Click an axis name. The lower part of the menu sets the scale for that channel on every plot.</li>
+<li>If the dim cloud is cut off at the left or bottom edge, raise the <b>Logicle width</b> (W) one step at a time until the whole cloud shows.</li></ol></div>
+<div class="why"><b>Why negative numbers are normal.</b> Compensation is a subtraction, and every measurement has some noise. Subtract from a number near zero and some cells land a little below zero. They are real cells and belong in the negative population [3, 6]. Changing the scale never changes a count: a gate keeps the same cells whichever scale you look through.</div>
+</section>
+
+<section id="g-positive"><h2>9. Deciding what is positive</h2>
+<figure class="fig wide"><svg data-fig="fmo" viewBox="0 0 260 190" role="img" aria-label="A histogram of a stained sample with the FMO control as a dashed line; the gate starts where the control ends"></svg><figcaption>Solid: your stained sample. Dashed: the FMO control for this colour. Start the gate where the control ends.</figcaption></figure>
+<p>This is the gate that answers your question, so it needs the most care. Do not place it by eye on the stained sample alone. Place it against a control.</p>
+<div class="do"><b>In Flow Bench</b><ol>
+<li>Click the population you want to split (Live, or Singlets). Press <b>Insert</b> then <b>Histogram</b> and choose the marker's channel.</li>
+<li>If you marked an FMO control for that channel on the Data tab, it is drawn behind as a dashed line. Without one, the unstained control is used.</li>
+<li>Choose <b>Range</b> and drag from the point where the dashed line has fallen away, out to the right edge. Name it after the marker, for example <b>CD4+</b>.</li></ol></div>
+<figure class="fig wide"><svg data-fig="shapes" viewBox="0 0 420 150" role="img" aria-label="Three gate shapes: a range on a histogram, a quadrant on two markers, a polygon around a slanted population"></svg><figcaption>Which shape to use.</figcaption></figure>
+<table class="gt2"><tr><th>Shape</th><th>Use it when</th></tr>
+<tr><td><b>Range</b></td><td>One marker, positive or negative. The simplest and the easiest to defend.</td></tr>
+<tr><td><b>Quadrant</b></td><td>Two markers at once, each simply on or off. One click places the cross; you get four populations.</td></tr>
+<tr><td><b>Rectangle</b></td><td>A cloud that sits square to the axes.</td></tr>
+<tr><td><b>Polygon</b></td><td>A cloud that is slanted or oddly shaped, where a straight cut would slice through it.</td></tr></table>
+<div class="do"><b>Look back to check the gate</b><ol>
+<li>Click your new gate and press <b>Open plot</b>. Set the new plot's axes to <b>FSC-A</b> and <b>SSC-A</b>.</li>
+<li>The cells in your gate should sit where your cells sat in the first plot. If many sit in the debris corner or far off to one side, the gate is catching something that is not your population.</li></ol></div>
+<div class="why"><b>Why an FMO and not just unstained cells.</b> With many colours on the same cell, the bright ones widen the spread of the others even after compensation. An unstained tube cannot show that; an FMO tube can, because it has every other colour in it [4]. For a bright, well separated marker the difference is small. For a dim marker, or one that forms a smear, it can change the answer.</div>
+</section>
+
+<section id="g-apply"><h2>10. One gate for every file</h2>
+<p>A gate you draw applies to all files. Press <b>Next</b> (or Page Down) and look at each file to see that the gate still fits.</p>
+<table class="gt2"><tr><th>"Apply changes to" on the Gating tab</th><th>What moving a gate does</th><th>Choose it when</th></tr>
+<tr><td><b>All files</b></td><td>Moves it everywhere</td><td>Almost always. Start here.</td></tr>
+<tr><td><b>Group</b></td><td>Moves it for the files in this file's group</td><td>A whole group was run on another day or with other settings.</td></tr>
+<tr><td><b>This file</b></td><td>Moves it for this file only</td><td>One tube shifted, for example a different cell number changed the scatter.</td></tr></table>
+<div class="why"><b>Why the same gate.</b> If each file gets its own gate, you can move the answer wherever you like without meaning to. Use one gate unless there is a reason you could explain to a reviewer. When a file does have its own gate, Flow Bench marks it, lists it in the checks and prints it in the report. <b>Use shared</b> puts a file back on the common gate.</div>
+</section>
+
+<section id="g-checks"><h2>11. Read the checks</h2>
+<p>The Checks panel on the right looks for the common ways an analysis goes wrong. A warning is a prompt to look, not a verdict.</p>
+<table class="gt2"><tr><th>Warning</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>Compensation looks off</td><td>A single-stain control still shows signal in another detector</td><td>Open the Compensation tab and look at that pair. A dim control gives a rough estimate, so judge by eye too.</td></tr>
+<tr><td>Gate reaches into the FMO control</td><td>Cells that cannot be positive fall inside the gate</td><td>Move the gate's lower edge up.</td></tr>
+<tr><td>No FMO control</td><td>The gate was placed without one</td><td>Acceptable for bright, well separated markers. Say so in your methods.</td></tr>
+<tr><td>Only a few events in a gate</td><td>The percentage rests on very few cells</td><td>Read the interval it gives. Collect more cells next time.</td></tr>
+<tr><td>Flow rate was uneven</td><td>A clog or an air bubble during the run</td><td>Plot Time against a scatter channel and, if needed, gate out the bad stretch.</td></tr>
+<tr><td>Events at the detector maximum</td><td>Some cells were too bright to measure</td><td>They pile up at the top edge. Keep them out of intensity measurements; lower the voltage next time.</td></tr>
+<tr><td>Different voltages</td><td>Files were recorded with different settings</td><td>Percentages may still be comparable. Intensities are not.</td></tr>
+<tr><td>A file has its own gate</td><td>See step 10</td><td>Be ready to explain why.</td></tr></table>
+<p class="small">The limits behind these warnings are starting values. Set them to what your lab accepts on the <button class="lk" data-go="Export">Export</button> tab. They are printed in every report.</p>
+</section>
+
+<section id="g-numbers"><h2>12. Which number to report</h2>
+<table class="gt2"><tr><th>Number</th><th>Use it to say</th><th>Example</th></tr>
+<tr><td><b>% of parent</b></td><td>How common a population is within the gate before it</td><td>"32% of live cells were CD4+"</td></tr>
+<tr><td><b>% of all events</b></td><td>Rarely the right choice: it also counts debris and dead cells</td><td></td></tr>
+<tr><td><b>Events</b></td><td>How many cells the percentage rests on</td><td>Always worth a look</td></tr>
+<tr><td><b>Median</b> intensity</td><td>How much of a marker the cells carry, when all cells shift together</td><td>"Median PD-1 doubled"</td></tr>
+<tr><td><b>Geometric mean</b></td><td>The same, in labs that use it by habit</td><td></td></tr></table>
+<p>Every gate gets a percent of parent for every file automatically. To add a median, go to the <button class="lk" data-go="Statistics">Statistics</button> tab and use <b>Add a statistic</b>.</p>
+<div class="why"><b>Percent or intensity?</b> If the plot shows two clouds, positive and negative, report a percentage. If it shows one cloud that slides brighter or dimmer, report the median. <b>Why the median and not the mean:</b> a handful of extremely bright cells can drag the mean a long way; the median barely moves [1].</div>
+<div class="why"><b>How many cells is enough?</b> Counting is noisy. A gate with 100 cells in it is uncertain by about 10%, one with 10,000 cells by about 1% (the square root of the count, as a share of the count). For a rare population, collect enough events that the gate ends up with a few hundred cells.</div>
+</section>
+
+<section id="g-groups"><h2>13. Comparing groups</h2>
+<figure class="fig wide"><svg data-fig="rep" viewBox="0 0 400 190" role="img" aria-label="Left: thousands of cells treated as data points, which is wrong. Right: one dot per animal, three per group, which is right"></svg><figcaption>Left: every cell treated as a data point. The tiny p-value only says that 20,000 is a large number. Right: one dot per animal or culture. This is the comparison that tells you whether the result would happen again.</figcaption></figure>
+<p>On the Statistics tab, each file gives <b>one</b> value. Groups are compared file against file.</p>
+<div class="why"><b>Why not cell against cell.</b> The cells in one tube all came from the same animal or dish. They are not independent, so thousands of them do not make thousands of replicates. Your replicates are the animals, cultures or donors [5].</div>
+<table class="gt2"><tr><th>Your design</th><th>Tests shown</th><th>Which to read</th></tr>
+<tr><td>Two groups</td><td>Welch's t-test and Mann–Whitney</td><td>The t-test compares means and suits values that are roughly bell shaped. Mann–Whitney compares ranks and makes fewer assumptions, but cannot give a small p-value with very few files.</td></tr>
+<tr><td>Three or more groups</td><td>One-way ANOVA and Kruskal–Wallis</td><td>Each asks whether <i>any</i> group differs. Neither says which one. For that, send the table to Prism and run a multiple-comparison test there.</td></tr></table>
+<p class="small">With fewer than three files in a group, no test is trustworthy. Show the dots and say how many there are. Flow Bench does not correct for testing many statistics at once.</p>
+</section>
+
+<section id="g-output"><h2>14. Make the figure and the tables</h2>
+<div class="do"><b>The page of plots</b><ol>
+<li>The layout page is your figure in the making. On the Insert tab add a <b>Density plot</b> or <b>Histogram</b> of any population, a <b>Statistics</b> table, or a <b>Chart</b> of one number by group.</li>
+<li>A common figure shows the gating path once, for one typical file: Cells, Singlets, Live, then the marker.</li></ol></div>
+<div class="do"><b>On the Export tab</b><ol>
+<li><b>PDF report</b>: the settings, the checks, the statistics, and every plot of every study file. Keep it with your notebook.</li>
+<li><b>Excel</b>: one row per file with every number, plus every gate in every file.</li>
+<li><b>GraphPad Prism</b>: press <b>New Prism file</b>. You get one table per statistic, with your groups as columns. Make your graphs in Prism and save. If you change a gate later, come back and press <b>Update Prism</b>: the numbers in that file are replaced and your graphs redraw when Prism opens it. A dated backup is kept each time. Close the file in Prism before updating.</li>
+<li><b>Gating-ML</b>: the gates in a standard format, for a methods section or other software.</li>
+<li><b>Save</b> the project so you can reopen the analysis as you left it.</li></ol></div>
+</section>
+
+<section id="g-example"><h2>15. A ten-minute walk-through on real data</h2>
+<p>The example is published data: chicken cells carrying a cell-cycle reporter, grown in three conditions, three cell lines each (Sudderick et al., <i>PLoS Biology</i> 2026). It opens with four starter gates drawn by Flow Bench. They are a place to start, not the authors' gates.</p>
+<div class="do"><ol>
+<li><button class="lk" data-ex="fuchi">Open the example</button>. Look at the Data tab: nine files in three groups, and one tube of cells without the reporter marked as the unstained control.</li>
+<li>On the Home tab, press <b>Next</b> a few times. Every plot follows the file. Watch the third plot change between conditions.</li>
+<li>Go to Gating. Click the <b>Cells</b> gate on the first plot and drag one corner. The numbers, the gate view and the chart all follow.</li>
+<li>Click the name on the histogram's axis and switch its scale between Linear and Logicle. The two peaks sit a factor of two apart, which a linear scale shows best.</li>
+<li>Draw a gate of your own: choose <b>Range</b>, drag across one peak of the histogram, and name it.</li>
+<li>Open Statistics. Your new gate is in the list. Click it to see one dot per file and the group comparison.</li>
+<li>Open Export and press <b>PDF report</b> to see what you would hand to a colleague.</li></ol></div>
+</section>
+
+<section id="g-mistakes"><h2>16. Eight common mistakes</h2>
+<ol class="mist">
+<li>Gating scatter so tightly that real cells are thrown out.</li>
+<li>Skipping the singlet gate, then finding "double-positive" cells that are two cells stuck together.</li>
+<li>Leaving dead cells in.</li>
+<li>Placing a positive gate by eye, with no control behind it.</li>
+<li>Using an unstained tube where a dim marker needs an FMO.</li>
+<li>Giving every file its own gate.</li>
+<li>Reporting a percentage that rests on a dozen cells.</li>
+<li>Counting cells as replicates.</li></ol>
+</section>
+
+<section id="g-words"><h2>17. Words you will meet</h2>
+<dl class="gl">
+<dt>Event</dt><dd>One thing the cytometer measured: usually a cell, sometimes debris or two cells together.</dd>
+<dt>Channel, detector</dt><dd>One measurement. Names such as <i>B 530/30-A</i> give the laser (B, blue), the filter (530/30) and the pulse measure (A, area).</dd>
+<dt>FSC, SSC</dt><dd>Forward and side scatter: light bounced off the cell. Roughly size, and internal complexity.</dd>
+<dt>A, H, W</dt><dd>Area, height and width of the light pulse from one cell.</dd>
+<dt>Population</dt><dd>The cells inside a gate.</dd>
+<dt>Parent</dt><dd>The population a gate was drawn on. "Percent of parent" is a share of that.</dd>
+<dt>Spillover</dt><dd>Light from one dye landing in another dye's detector.</dd>
+<dt>Compensation</dt><dd>Subtracting spillover.</dd>
+<dt>FMO</dt><dd>A control with every stain except one.</dd>
+<dt>MFI</dt><dd>"Mean" or "median fluorescence intensity". Say which. Flow Bench reports the median.</dd>
+<dt>Logicle, biexponential</dt><dd>A scale that is like a ruler near zero and like a log scale higher up.</dd>
+</dl>
+</section>
+
+<section id="g-other"><h2>18. If you have used FlowJo or FCS Express</h2>
+<p>The ideas are the same; some names differ.</p>
+<table class="gt2"><tr><th>In Flow Bench</th><th>In FlowJo</th><th>In FCS Express</th></tr>
+<tr><td>Project file</td><td>Workspace</td><td>Layout file</td></tr>
+<tr><td>Data list</td><td>Samples in the workspace</td><td>Data list</td></tr>
+<tr><td>Group, set on the Data tab</td><td>Group</td><td></td></tr>
+<tr><td>Gate view</td><td>The indented populations under a sample</td><td>Gate view</td></tr>
+<tr><td>A plot on the layout page</td><td>Graph window</td><td>A plot on the layout</td></tr>
+<tr><td>Range gate</td><td>Ranged gate</td><td>Marker</td></tr>
+<tr><td>Quadrant</td><td>Quad gate</td><td>Quadrants</td></tr>
+<tr><td>A file's own gate ("This file")</td><td></td><td>Data-specific gate</td></tr>
+<tr><td>Logicle scale</td><td>Biex or Logicle display</td><td></td></tr>
+<tr><td>Statistics tab, Excel export</td><td>Table editor</td><td>Statistics and batch export to Excel</td></tr>
+<tr><td>PDF report of every file</td><td>Layout editor, batched</td><td>Batch processing</td></tr>
+<tr><td>Prism: New file, then Update</td><td></td><td>Prism Project batch action: start empty, or combine with an existing file</td></tr></table>
+<p class="small">Flow Bench does not have ellipse, freehand or Boolean gates, FlowJo workspace import, or the proliferation, cell-cycle and clustering tools those programs offer.</p>
+</section>
+
+<section id="g-reading"><h2>19. Where this comes from</h2>
+<p>The advice on this page follows these papers. The first is the standard reference and is free to read.</p>
+<ol class="refs">
+<li>Cossarizza A, et al. Guidelines for the use of flow cytometry and cell sorting in immunological studies (third edition). <i>Eur J Immunol</i> 2021;51:2708–3145. <a href="https://doi.org/10.1002/eji.202170126" target="_blank" rel="noopener">doi:10.1002/eji.202170126</a></li>
+<li>Roederer M. Spectral compensation for flow cytometry: visualization artifacts, limitations, and caveats. <i>Cytometry</i> 2001;45:194–205. <a href="https://doi.org/10.1002/1097-0320(20011101)45:3%3C194::aid-cyto1163%3E3.0.co;2-c" target="_blank" rel="noopener">doi:10.1002/1097-0320(20011101)45:3&lt;194::aid-cyto1163&gt;3.0.co;2-c</a></li>
+<li>Parks DR, Roederer M, Moore WA. A new "Logicle" display method avoids deceptive effects of logarithmic scaling for low signals and compensated data. <i>Cytometry A</i> 2006;69:541–51. <a href="https://doi.org/10.1002/cyto.a.20258" target="_blank" rel="noopener">doi:10.1002/cyto.a.20258</a></li>
+<li>Maecker HT, Trotter J. Flow cytometry controls, instrument setup, and the determination of positivity. <i>Cytometry A</i> 2006;69:1037–42. <a href="https://doi.org/10.1002/cyto.a.20333" target="_blank" rel="noopener">doi:10.1002/cyto.a.20333</a></li>
+<li>Lord SJ, et al. SuperPlots: communicating reproducibility and variability in cell biology. <i>J Cell Biol</i> 2020;219:e202001064. <a href="https://doi.org/10.1083/jcb.202001064" target="_blank" rel="noopener">doi:10.1083/jcb.202001064</a></li>
+<li>Herzenberg LA, et al. Interpreting flow cytometry data: a guide for the perplexed. <i>Nat Immunol</i> 2006;7:681–5. <a href="https://doi.org/10.1038/ni0706-681" target="_blank" rel="noopener">doi:10.1038/ni0706-681</a></li>
+<li>Wersto RP, et al. Doublet discrimination in DNA cell-cycle analysis. <i>Cytometry</i> 2001;46:296–306. <a href="https://doi.org/10.1002/cyto.1171" target="_blank" rel="noopener">doi:10.1002/cyto.1171</a></li>
+</ol>
+<p class="small">The names in section 18 were checked against FlowJo's online documentation and the FCS Express manual. The drawings on this page are diagrams, not data. Where to place a gate, which control is enough and which test fits your design are your decisions; this page explains the usual reasoning, and your lab or your core facility may have its own rules.</p>
+</section>
+</article>
+</div>

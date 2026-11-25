@@ -264,3 +264,55 @@ dialog .row{display:flex;justify-content:flex-end;gap:8px}
 .drop{position:fixed;inset:0;z-index:50;background:rgba(0,113,227,.14);border:3px dashed var(--accent);display:flex;align-items:center;justify-content:center;pointer-events:none}
 .drop div{background:var(--panel);color:var(--ink);padding:14px 22px;border-radius:12px;font-size:15px;font-weight:600}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* tutorial */
+#v-guide.on{display:block;overflow:auto}
+.guide{display:grid;grid-template-columns:230px minmax(0,820px);gap:26px;padding:20px 24px 70px;justify-content:center;align-items:start}
+.toc{position:sticky;top:16px;background:var(--panel);border:1px solid var(--line);border-radius:max(var(--pr),8px);padding:12px 10px;box-shadow:var(--pshadow);max-height:calc(100vh - 200px);overflow:auto}
+html[data-theme=dark] .toc,html[data-theme=dark] .guide article{border-color:#3a3d42}
+.toc h5{margin:0 8px 6px;font-size:11.5px;color:var(--dim)}
+.toc a{display:block;padding:4px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:12.5px;line-height:1.3}
+.toc a:hover{background:var(--hover)}
+.guide article{background:var(--panel);border:1px solid var(--line);border-radius:max(var(--pr),8px);box-shadow:var(--pshadow);padding:26px 32px 30px;font-size:14.5px;line-height:1.6;color:var(--ink);min-width:0}
+.ghead h1{font-size:27px;letter-spacing:-.02em;margin:0 0 8px;line-height:1.15;font-weight:680}
+.lead{font-size:16px;color:var(--dim);margin:0 0 14px}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.strip span{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.guide h2{font-size:19px;margin:30px 0 8px;padding-top:20px;border-top:1px solid var(--line2);letter-spacing:-.01em;scroll-margin-top:8px}
+.guide section{scroll-margin-top:8px}
+.guide p{margin:0 0 11px}
+.guide .small{font-size:13px;color:var(--dim)}
+.why{background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:14px}
+.do{border:1px solid var(--line2);border-radius:10px;padding:10px 14px 4px;margin:12px 0}
+.do ol{margin:6px 0 8px;padding-left:20px}
+.do li{margin:0 0 5px}
+.lk{color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+.guide a{color:var(--accent)}
+.fig{margin:12px 0;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:8px 10px 0}
+.fig svg{display:block;margin:0 auto;height:215px;max-width:100%}
+.fig figcaption{font-size:12.5px;color:#4a545e;padding:7px 2px 9px;line-height:1.45;border-top:1px solid #e3e6ea;margin-top:4px}
+.figrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fig .ax{fill:none;stroke:#8f98a2;stroke-width:1}
+.fig .al{font:600 10.5px var(--font);fill:#39424c}
+.fig .nt,.fig .gl,.fig .bad,.fig .good{paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round}
+.fig .nt{font:10.5px var(--font);fill:#39424c}
+.fig .gl{font:700 11px var(--font);fill:#111820}
+.fig .bad{font:700 11px var(--font);fill:#b3261e}
+.fig .good{font:700 11px var(--font);fill:#1f7a36}
+.fig .gate{fill:none;stroke:#111820;stroke-width:1.5}
+.fig .ar{fill:none;stroke:#39424c;stroke-width:1}
+.fig .hf{fill:#2f7fe0;fill-opacity:.22;stroke:none}
+.fig .hl{fill:none;stroke:#1c64c4;stroke-width:1.5}
+.fig .hd{fill:none;stroke:#59626d;stroke-width:1.3;stroke-dasharray:5 3}
+.fig .lv{fill:none;stroke:#8f98a2;stroke-width:1;stroke-dasharray:3 3}
+.gt2{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 14px}
+.gt2 th{text-align:left;font-size:12px;color:var(--dim);border-bottom:1px solid var(--line2);padding:6px 8px;font-weight:600}
+.gt2 td{border-bottom:1px solid var(--line2);padding:7px 8px;vertical-align:top}
+.mist,.refs{padding-left:22px}
+.mist li,.refs li{margin:0 0 6px}
+.refs{font-size:13px}
+.gl{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;font-size:13.5px}
+.gl dt{font-weight:600}
+.gl dd{margin:0}
+@media (max-width:1150px){.guide{grid-template-columns:minmax(0,820px)}.toc{display:none}}
+@media print{body{display:block;overflow:visible;min-width:0;background:#fff}.titlebar,.tabs,.ribbon,.status,.toc,.menu,.toast{display:none!important}#main{position:static}.view{position:static;display:none!important}#v-guide.on{display:block!important;overflow:visible}.guide{display:block;padding:0}.guide article{border:0;box-shadow:none;padding:0;background:#fff;color:#111}.fig,.do,.why,tr{break-inside:avoid}}

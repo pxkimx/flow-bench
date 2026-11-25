@@ -62,6 +62,24 @@ def test_health_state_and_page(server):
     assert call(port, "/../server.py")[0] == 404
 
 
+def test_tutorial_is_served_complete(server):
+    import re
+    port, _ = server
+    code, body = call(port, "/guide.html")
+    page = body.decode("utf-8")
+    assert code == 200 and "From raw files to a figure and a table" in page
+    sections = re.findall(r'<section id="(g-[a-z]+)"><h2>(\d+)\.', page)
+    assert [int(n) for _, n in sections] == list(range(1, len(sections) + 1)) and len(sections) == 19      # numbered in order, none missing
+    for anchor in re.findall(r'href="#(g-[a-z]+)"', page):
+        assert any(anchor == sid for sid, _ in sections), anchor
+    js = call(port, "/app.js")[1].decode("utf-8")
+    figs = set(re.findall(r'data-fig="([a-z]+)"', page))
+    assert len(figs) == 10 and all(re.search(r"\b%s: \(\) =>" % f, js) for f in figs), figs                 # every drawing has its code
+    tabs = set(re.search(r"const TABS = \[(.*?)\]", js).group(1).replace("'", "").split(", "))
+    assert set(re.findall(r'data-go="([A-Za-z]+)"', page)) <= tabs and "Tutorial" in tabs                    # every "go to" link names a real tab
+    assert len(re.findall(r'href="https://doi\.org/', page)) == 7 and 'data-ex="fuchi"' in page
+
+
 def test_other_sites_are_refused(server):
     port, p = server
     assert call(port, "/api/state", headers={"Host": "evil.example"})[0] == 403

@@ -7,8 +7,8 @@ const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-US');
 const pct = (v, d = 1) => v == null ? 'n/a' : v.toFixed(d) + '%';
 const DPR = () => Math.min(2, window.devicePixelRatio || 1);
 const SANS = '-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif', MONO = 'ui-monospace,"SF Mono",Menlo,Consolas,monospace';
-const TABS = ['Home', 'Data', 'Gating', 'Insert', 'Compensation', 'Statistics', 'Export'];
-const VIEW = { Home: 'layout', Gating: 'layout', Insert: 'layout', Data: 'data', Compensation: 'comp', Statistics: 'stats', Export: 'export' };
+const TABS = ['Home', 'Data', 'Gating', 'Insert', 'Compensation', 'Statistics', 'Export', 'Tutorial'];
+const VIEW = { Home: 'layout', Gating: 'layout', Insert: 'layout', Data: 'data', Compensation: 'comp', Statistics: 'stats', Export: 'export', Tutorial: 'guide' };
 const GROUP_COLOURS = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b'];
 const CM = {
   light: [[0, 48, 60, 160], [.25, 40, 170, 240], [.5, 90, 220, 120], [.75, 250, 200, 50], [1, 210, 50, 30]],
@@ -112,6 +112,7 @@ function renderRibbon() {
   if (TAB === 'Statistics') h = grp('Export', rb('prism', S.prism.path ? 'Update Prism' : 'New Prism file', S.prism.path ? 'prismUpdate' : 'prismNew', 'go', !has) + rb('xls', 'Excel', 'xlsx', '', !has));
   if (TAB === 'Export') h = grp('GraphPad Prism', rb('prism', 'New file', 'prismNew', '', !has) + rb('link', 'Link existing', 'prismLink', '', !has) + rb('prism', 'Update', 'prismUpdate', 'go', !S.prism.path) + rb('ext', 'Open in Prism', 'prismOpen', '', !S.prism.path))
     + grp('Report and tables', rb('pdf', 'PDF report', 'pdf', '', !has) + rb('xls', 'Excel', 'xlsx', '', !has) + rb('gml', 'Gating-ML', 'gml', '', !has));
+  if (TAB === 'Tutorial') h = grp('Try it', rb('book', 'Open example data', 'guideExample')) + grp('This page', rb('pdf', 'Print', 'guidePrint'));
   $('#ribbon').innerHTML = h;
   const fs = $('#fileSel'); if (fs) fs.onchange = () => setCurrent(fs.value);
 }
@@ -150,6 +151,7 @@ async function doAct(a, el) {
     prismOpen: () => act(() => api('/api/prism', { op: 'open' })),
     prismUnlink: () => act(async () => { await api('/api/prism', { op: 'unlink' }); await refresh(); }),
     pdf: () => download('/api/export/pdf', 'Building the report…'), xlsx: () => download('/api/export/xlsx'), gml: () => download('/api/export/gml'),
+    guideExample: () => openExample('fuchi'), guidePrint: () => window.print(), tutorial: () => { TAB = 'Tutorial'; refresh(); },
     saveAs: () => act(async () => { const r = await api('/api/project', { op: 'save', as: true }); if (!r.cancelled) { toast('Project saved'); await refresh(); } }),
   };
   if (A[a]) return A[a]();
@@ -179,6 +181,7 @@ async function refresh() {
   if (SEL.gate && !gateById(SEL.gate)) SEL.gate = null;
   if (SEL.obj && !S.objects.find(o => o.id === SEL.obj)) SEL.obj = null;
   renderShell();
+  if (VIEW[TAB] === 'guide') return renderGuide();
   if (!S.samples.length) return;
   const v = VIEW[TAB];
   if (v === 'layout') await loadRender();
@@ -625,6 +628,7 @@ function renderStart() {
   const host = $('#v-start');
   host.innerHTML = `<canvas class="bg" aria-hidden="true"></canvas><div class="hero"><h1>Flow Bench</h1><p>Gate, check and compare flow cytometry files on this Mac. Nothing is uploaded.</p>
     <div class="dz"><div><b>Drop FCS files or a folder here</b><span>FCS 2.0, 3.0 and 3.1. The files are read where they are and never changed.</span></div><div class="bts"><button class="btn go" data-act="addFiles">${ic('file')}Add files</button><button class="btn" data-act="addFolder">${ic('folder')}Add folder</button><button class="btn" data-act="openProject">${ic('open')}Open project</button></div></div>
+    <p style="margin:-6px 0 18px;font-size:13.5px">New to flow cytometry? <button class="lk" data-act="tutorial">Read the tutorial</button>: from raw files to gates, a graph and a table, with the reason for each step.</p>
     <h4>Or try it on published data</h4><div class="ex">${S.examples.map(x => `<div class="card"><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p><div class="bts"><button class="btn${x.installed ? ' go' : ''}" data-ex="${x.key}">${x.installed ? 'Open' : 'Download (' + x.size_mb + ' MB) and open'}</button></div><div class="prog" id="prog_${x.key}" hidden><i></i></div>
       <small>${esc(x.citation)}, <a href="https://doi.org/${esc(x.doi)}" target="_blank" rel="noopener">doi:${esc(x.doi)}</a>. Data: <a href="https://zenodo.org/records/${esc(x.record)}" target="_blank" rel="noopener">Zenodo ${esc(x.record)}</a>, ${esc(x.licence)}.</small></div>`).join('')}</div></div>`;
   startBg(host.querySelector('canvas'));
@@ -657,6 +661,56 @@ function startBg(cv) {
   };
   tick();
 }
+
+
+/* ---------------------------------------------------------------- tutorial */
+let GUIDE = null;
+const BLUE = '#2f7fe0', GREEN = '#3fbf6a', YEL = '#f2c230', RED = '#e2452f', GREY = '#9aa3ad';
+function grng(seed) { let s = seed >>> 0; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+function cloud(seed, cx, cy, sx, sy, n, rot, col, box) {
+  const r = grng(seed), g = () => { let u = 0; while (!u) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2832 * r()); }, c = Math.cos(rot || 0), s = Math.sin(rot || 0), b = box || [38, 14, 248, 158];
+  let o = ''; for (let i = 0; i < n; i++) { const u = g() * sx, v = g() * sy, x = cx + u * c - v * s, y = cy + u * s + v * c; if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue; o += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.25" fill="${col}"/>`; }
+  return o;
+}
+const heat = (seed, cx, cy, sx, sy, n, rot, box) => cloud(seed, cx, cy, sx, sy, n, rot, BLUE, box) + cloud(seed + 1, cx, cy, sx * .62, sy * .62, n * .7 | 0, rot, GREEN, box) + cloud(seed + 2, cx, cy, sx * .36, sy * .36, n * .45 | 0, rot, YEL, box) + cloud(seed + 3, cx, cy, sx * .18, sy * .18, n * .3 | 0, rot, RED, box);
+const axes = (xl, yl, x0 = 36, x1 = 250, y1 = 160) => `<path class="ax" d="M${x0} 12V${y1}H${x1}"/><text class="al" x="${(x0 + x1) / 2}" y="${y1 + 21}" text-anchor="middle">${xl}</text>` + (yl ? `<text class="al" transform="translate(${x0 - 20} ${(12 + y1) / 2}) rotate(-90)" text-anchor="middle">${yl}</text>` : '');
+const note = (x, y, t, anchor, cls) => `<text class="${cls || 'nt'}" x="${x}" y="${y}" text-anchor="${anchor || 'start'}">${t}</text>`;
+const line = (pts, cls, close) => `<path class="${cls}" d="M${pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')}${close ? 'Z' : ''}"/>`;
+function bumps(x0, x1, base, peaks, n = 90) { const pts = []; for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n; let y = 0; for (const [m, sd, h] of peaks) y += h * Math.exp(-((x - m) ** 2) / (2 * sd * sd)); pts.push([x, base - y]); } return pts; }
+const filled = (x0, x1, base, peaks) => line([[x0, base], ...bumps(x0, x1, base, peaks), [x1, base]], 'hf', true) + line(bumps(x0, x1, base, peaks), 'hl');
+const FIGS = {
+  plot: () => axes('one measurement', 'another measurement') + heat(11, 140, 94, 46, 28, 330, -0.45) + `<path class="ar" d="M204 42L176 66"/>` + note(246, 36, 'each dot is one cell', 'end') + `<path class="ar" d="M96 142L128 106"/>` + note(44, 153, 'red: most cells are here'),
+  hist: () => axes('brightness', 'number of cells') + filled(38, 248, 160, [[90, 16, 96], [186, 20, 54]]) + note(90, 54, 'dim cells', 'middle') + note(186, 96, 'bright cells', 'middle'),
+  cells: () => axes('FSC-A  (size)', 'SSC-A  (what is inside)') + cloud(21, 50, 148, 8, 7, 170, 0, GREY) + heat(22, 146, 100, 44, 20, 350, -0.38) + `<path class="gate" d="M68 140L100 64L216 30L246 74L190 140Z"/>` + note(42, 122, 'debris') + note(226, 24, 'Cells', 'middle', 'gl'),
+  singlets: () => axes('FSC-A  (pulse area)', 'FSC-H  (pulse height)') + heat(31, 135, 96, 50, 6.5, 350, -0.615) + cloud(35, 192, 98, 15, 6, 70, -0.615, GREY) + `<path class="gate" d="M44 142L214 22L232 46L64 158Z"/>` + note(212, 122, 'two cells together', 'middle') + `<path class="ar" d="M204 112L198 104"/>` + note(112, 52, 'Singlets', 'middle', 'gl'),
+  live: () => axes('viability dye', 'number of cells') + filled(38, 248, 160, [[90, 15, 108], [198, 14, 32]]) + `<path class="gate" d="M52 26V38M52 32H130M130 26V38"/>` + note(91, 22, 'Live', 'middle', 'gl') + note(198, 118, 'dead cells', 'middle'),
+  comp: () => { const A = [38, 14, 188, 158], B = [238, 14, 388, 158];
+    return axes('the stained colour', 'next detector', 36, 190) + note(113, 24, 'As measured', 'middle', 'gl') + heat(41, 64, 138, 9, 8, 150, 0, A) + heat(45, 146, 78, 22, 7, 220, -0.52, A) + `<path class="lv" d="M40 138H188"/>`
+      + axes('the stained colour', '', 236, 390) + note(313, 24, 'Compensated', 'middle', 'gl') + heat(51, 264, 138, 9, 8, 150, 0, B) + heat(55, 346, 138, 20, 9, 220, 0, B) + `<path class="lv" d="M240 138H388"/>`; },
+  scale: () => { const A = [38, 14, 188, 158], B = [238, 14, 388, 158];
+    return `<path class="ax" d="M36 12V160H190"/>` + note(113, 24, 'Log scale', 'middle', 'gl') + heat(61, 38, 112, 22, 22, 260, 0, A) + cloud(66, 39.4, 112, .5, 24, 170, 0, BLUE, [37, 14, 188, 158]) + note(100, 150, 'piled on the axis') + `<path class="ar" d="M98 146L46 128"/>` + [['10²', 80], ['10³', 125], ['10⁴', 170]].map(t => `<path class="ax" d="M${t[1]} 160v5"/>` + note(t[1], 176, t[0], 'middle')).join('')
+      + `<path class="ax" d="M236 12V160H390"/>` + note(313, 24, 'Logicle scale', 'middle', 'gl') + heat(71, 286, 112, 20, 22, 300, 0, B) + [['0', 286], ['10³', 330], ['10⁴', 372]].map(t => `<path class="ax" d="M${t[1]} 160v5"/>` + note(t[1], 176, t[0], 'middle')).join('') + `<path class="lv" d="M286 30V160"/>`; },
+  fmo: () => axes('marker brightness', 'number of cells') + filled(38, 248, 160, [[88, 15, 90], [180, 22, 50]]) + line(bumps(38, 248, 160, [[84, 14, 104]]), 'hd') + `<path class="gate" d="M128 30V160M128 36H246M246 30V42"/>` + note(188, 28, 'positive', 'middle', 'gl') + note(60, 34, 'FMO control') + `<path class="ar" d="M84 38L84 52"/>`,
+  shapes: () => `<path class="ax" d="M20 10V118H130"/>` + filled(21, 130, 118, [[50, 9, 72], [100, 11, 40]]) + `<path class="gate" d="M78 20V32M78 26H128M128 20V32"/>` + note(75, 140, 'Range', 'middle', 'gl')
+    + `<path class="ax" d="M160 10V118H270"/>` + [[188, 92], [246, 92], [188, 36], [246, 36]].map((c, i) => heat(80 + i * 5, c[0], c[1], 9, 8, 70, 0, [162, 12, 268, 116])).join('') + `<path class="gate" d="M217 12V118M160 64H270"/>` + note(215, 140, 'Quadrant', 'middle', 'gl')
+    + `<path class="ax" d="M300 10V118H410"/>` + heat(101, 356, 64, 26, 6, 240, -0.6, [302, 12, 408, 116]) + `<path class="gate" d="M322 74L378 30L394 46L338 96Z"/>` + note(355, 140, 'Polygon', 'middle', 'gl'),
+  rep: () => axes('', '% positive', 36, 190) + cloud(111, 80, 96, 8, 26, 260, 0, GREY, [38, 14, 188, 158]) + cloud(112, 146, 80, 8, 26, 260, 0, GREY, [38, 14, 188, 158]) + note(80, 176, 'Control', 'middle') + note(146, 176, 'Treated', 'middle') + note(113, 24, '"n = 20,000 cells"', 'middle', 'bad')
+    + axes('', '% positive', 236, 390) + [[280, [104, 112, 96]], [346, [62, 74, 54]]].map(g => `<path class="gate" d="M${g[0] - 16} ${(g[1][0] + g[1][1] + g[1][2]) / 3}H${g[0] + 16}"/>` + g[1].map((y, i) => `<circle cx="${g[0] + (i - 1) * 9}" cy="${y}" r="4" fill="${BLUE}" stroke="#fff"/>`).join('')).join('') + note(280, 176, 'Control', 'middle') + note(346, 176, 'Treated', 'middle') + note(313, 24, 'n = 3 animals per group', 'middle', 'good'),
+};
+async function renderGuide() {
+  const host = $('#v-guide');
+  if (GUIDE == null) {
+    try { GUIDE = await (await fetch('guide.html')).text(); } catch (e) { return toast('The tutorial could not be loaded.', true); }
+    host.innerHTML = GUIDE;
+    host.querySelectorAll('svg[data-fig]').forEach(sv => { const f = FIGS[sv.dataset.fig]; if (f) sv.innerHTML = f(); });
+    $('#guideToc').innerHTML = [...host.querySelectorAll('section[id] > h2')].map(h => `<a href="#${h.parentElement.id}">${esc(h.textContent)}</a>`).join('');
+  }
+}
+$('#v-guide').addEventListener('click', e => {
+  const go = e.target.closest('[data-go]'); if (go) { TAB = go.dataset.go; return refresh(); }
+  const ex = e.target.closest('[data-ex]'); if (ex) return openExample(ex.dataset.ex);
+  const a = e.target.closest('a[href^="#g-"]'); if (a) { e.preventDefault(); const t = document.getElementById(a.getAttribute('href').slice(1)); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+});
 
 /* ---------------------------------------------------------------- drag and drop */
 let dragDepth = 0;

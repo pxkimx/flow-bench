@@ -31,6 +31,8 @@ Prism link and the checks on the right. Light and dark looks are built in.
 - **GraphPad Prism**: writes a `.pzfx` project with one Column table per statistic. Link a Prism file and
   "Update" replaces the numbers in the tables with the same titles and leaves everything else alone, so graphs
   and analyses made in Prism redraw from the new numbers. A dated backup is kept each time.
+- **Tutorial**: a built-in page for people who have never analysed flow data: from raw files to gates, a graph
+  and a table, with a diagram and the reason for each step, and the papers the advice comes from.
 - **Also**: a PDF report (settings, checks, statistics, every plot of every study file), an Excel workbook,
   Gating-ML 2.0 export of the gates, and project files.
 
@@ -70,7 +72,7 @@ gates and the numbers they give are not results from the paper.
 - **GraphPad Prism 10.2.3**: a file written by Flow Bench opens without a warning; after a graph was made in
   Prism and the file saved, "Update" from Flow Bench changed the numbers and Prism redrew the graph from them.
 
-`python -m pytest tests -q` runs all of it (19 tests).
+`python -m pytest tests -q` runs all of it (20 tests).
 
 ## What it does not do yet
 
