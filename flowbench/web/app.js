@@ -205,7 +205,8 @@ function renderLayout() {
   // data list
   const groups = {}; const order = [];
   S.samples.forEach(s => { const k = s.role === 'sample' ? (s.group || 'No group') : 'Controls'; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(s); });
-  order.sort((a, b) => (a === 'Controls') - (b === 'Controls') || (a === 'No group') - (b === 'No group') || (S.groups.indexOf(a) - S.groups.indexOf(b)));
+  const rank = k => { const i = S.groups.indexOf(k); return i < 0 ? 999 : i; };
+  order.sort((a, b) => (a === 'Controls') - (b === 'Controls') || (a === 'No group') - (b === 'No group') || (rank(a) - rank(b)));
   $('#dlCount').textContent = S.samples.length + ' files';
   $('#dataList').innerHTML = order.map(k => `<div class="gh" title="${esc(k)}">${esc(k)}</div>` + groups[k].map(s => {
     const gi = S.groups.indexOf(s.group); const col = s.role !== 'sample' ? 'var(--dim)' : (gi >= 0 ? GROUP_COLOURS[gi % GROUP_COLOURS.length] : 'var(--line2)');
@@ -369,7 +370,11 @@ function cursors() { for (const id in PLOTS) PLOTS[id].cv.style.cursor = TOOL ==
 new ResizeObserver(() => redrawAll()).observe($('#objs'));
 
 function drawChart(cv, ch) {
-  const [c, w, h] = fit(cv), many = ch.groups.length > 3 || ch.groups.some(g => g.name.length > 14), L = 50, R2 = 12, T = 12, B = many ? 104 : 34, pw = w - L - R2, ph = h - T - B;
+  const [c, w, h] = fit(cv), L = 50, R2 = 12, T = 12, pw = w - L - R2;
+  c.font = '600 11px ' + SANS; const slotW = pw / ch.groups.length - 8;
+  const wrap = t => { const out = []; let line = ''; for (const word of t.split(/\s+/)) { const next = line ? line + ' ' + word : word; if (line && c.measureText(next).width > slotW) { out.push(line); line = word; } else line = next; } if (line) out.push(line); return out; };
+  const wrapped = ch.groups.map(g => wrap(g.name)), many = wrapped.some(ls => ls.length > 3 || ls.some(t => c.measureText(t).width > slotW + 6));
+  const B = many ? 104 : 18 + 14 * Math.max(...wrapped.map(ls => ls.length)), ph = h - T - B;
   const all = ch.groups.flatMap(g => g.values.map(v => v.v)); if (!all.length) return;
   let mx = Math.max(...all); const step0 = Math.pow(10, Math.floor(Math.log10(mx || 1))); const step = [1, 2, 5, 10].map(m => m * step0).find(s => mx / s <= 5) || step0 * 10; mx = Math.max(step, Math.ceil(mx / step) * step); if (ch.unit === '%' && mx > 100) mx = 100;
   const ink = '#39424c', line = '#8f98a2', acc = theme() === 'dark' ? '#d9590a' : '#0071e3';
@@ -381,8 +386,8 @@ function drawChart(cv, ch) {
     if (vals.length) { const mean = vals.reduce((a, b) => a + b, 0) / vals.length, bh = mean / mx * ph; c.fillStyle = acc; c.globalAlpha = .14; c.fillRect(cx - bw / 2, T + ph - bh, bw, bh); c.globalAlpha = 1; c.strokeStyle = '#14171a'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx - bw / 2, T + ph - bh); c.lineTo(cx + bw / 2, T + ph - bh); c.stroke();
       const sp = Math.min(11, bw / Math.max(1, vals.length)); vals.forEach((v, j) => { c.beginPath(); c.arc(cx + (j - (vals.length - 1) / 2) * sp, T + ph - Math.min(v, mx) / mx * ph, 3.6, 0, 7); c.fillStyle = acc; c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 1; c.stroke(); }); }
     c.font = '600 11px ' + SANS; c.fillStyle = '#14171a';
-    if (many) { c.save(); c.translate(cx + 4, T + ph + 9); c.rotate(-Math.PI / 5); c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(g.name.length > 24 ? g.name.slice(0, 23) + '…' : g.name, 0, 0); c.restore(); }
-    else { c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(g.name, cx, T + ph + 8); }
+    if (many) { const room = Math.min((B - 16) / Math.sin(Math.PI / 5), (cx - 2) / Math.cos(Math.PI / 5)); let t = g.name; while (t.length > 3 && c.measureText(t).width > room) t = t.slice(0, -2).trimEnd() + '…'; c.save(); c.translate(cx + 4, T + ph + 9); c.rotate(-Math.PI / 5); c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(t, 0, 0); c.restore(); }
+    else { c.textAlign = 'center'; c.textBaseline = 'top'; wrapped[i].forEach((t, k) => c.fillText(t, cx, T + ph + 8 + 14 * k)); }
   });
 }
 

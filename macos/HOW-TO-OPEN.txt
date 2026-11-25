@@ -1,0 +1,22 @@
+Flow Bench: how to open it
+==========================
+
+1. Drag "Flow Bench.app" into your Applications folder (or anywhere you like).
+
+2. Double-click it. The app is free and not registered with Apple, so the first time macOS may say it
+   cannot be opened. Click Done, open System Settings > Privacy & Security, scroll down and click
+   "Open Anyway". (On macOS 14 or older: Control-click the app and choose Open.)
+   Or, in Terminal: type  xattr -cr  and a space, drag the app into the window, press Return.
+
+3. The first start sets up its own Python environment in
+   ~/Library/Application Support/Flow Bench   (a few minutes, needs internet once).
+   It needs Python 3.10 to 3.14; Python 3.12 from python.org is the safe choice.
+
+4. Flow Bench opens in your web browser at http://localhost:8800. That tab is the app's window.
+   Closing the tab quits Flow Bench completely.
+
+Your FCS files are read where they are and never changed. Nothing is uploaded. The two example datasets
+are downloaded from Zenodo only if you ask for them (Home > Examples).
+
+If it will not start, the log is at ~/Library/Logs/FlowBench.log
+Source and licence (MIT): https://github.com/pxkimx/flow-bench

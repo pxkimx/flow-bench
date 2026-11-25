@@ -127,6 +127,7 @@ html[data-theme=dark] .dock.r .pn{border-width:0 0 1px 1px}
 .obj{border:1px solid var(--page-line);border-radius:var(--or);display:grid;grid-template-rows:auto minmax(0,1fr);height:340px;min-width:0;position:relative;background:var(--obj)}
 .obj .t{font-weight:600;font-size:12px;padding:6px 6px 2px 9px;display:flex;gap:6px;align-items:center;white-space:nowrap}
 .obj .t select{font:600 12px var(--font);border:0;background:transparent;color:var(--page-ink);padding:1px 2px;max-width:150px}
+.obj .t select.stat{max-width:210px}
 .obj .t span{color:var(--page-dim);font-weight:400;font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
 .obj .t .x{margin-left:auto;color:var(--page-dim);border-radius:6px;padding:2px;display:flex;opacity:0}
 .obj:hover .t .x,.obj.sel .t .x{opacity:1}

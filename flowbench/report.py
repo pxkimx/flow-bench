@@ -144,7 +144,7 @@ def pdf(p: Project) -> bytes:
 
     ss = getSampleStyleSheet()
     H1 = ParagraphStyle("H1", parent=ss["Title"], fontName="Helvetica-Bold", fontSize=20, leading=24, alignment=0, textColor=colors.HexColor(INK), spaceAfter=2)
-    H2 = ParagraphStyle("H2", parent=ss["Heading2"], fontName="Helvetica-Bold", fontSize=12, leading=15, textColor=colors.HexColor(INK), spaceBefore=10, spaceAfter=4)
+    H2 = ParagraphStyle("H2", parent=ss["Heading2"], fontName="Helvetica-Bold", fontSize=12, leading=15, textColor=colors.HexColor(INK), spaceBefore=10, spaceAfter=4, keepWithNext=1)
     B = ParagraphStyle("B", parent=ss["BodyText"], fontName="Helvetica", fontSize=8.6, leading=11.5, textColor=colors.HexColor(INK))
     S = ParagraphStyle("S", parent=B, fontSize=7.6, leading=10, textColor=colors.HexColor(DIM))
 
