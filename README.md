@@ -67,6 +67,8 @@ gates and the numbers they give are not results from the paper.
   matrix computed from controls matches the one that was put in, gate counts equal direct numpy counts, the four
   quadrants share out their parent exactly, a Prism file is updated in place without touching anything else.
 - **Server**: answers only this Mac's own pages, and quits when its window closes.
+- **GraphPad Prism 10.2.3**: a file written by Flow Bench opens without a warning; after a graph was made in
+  Prism and the file saved, "Update" from Flow Bench changed the numbers and Prism redrew the graph from them.
 
 `python -m pytest tests -q` runs all of it (19 tests).
 

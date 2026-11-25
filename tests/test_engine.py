@@ -196,10 +196,15 @@ def test_prism_file_is_written_and_updated_in_place(proj, tmp_path):
     xml.dom.minidom.parseString(z.encode())
     assert z.count("<Table ") == 1 and "<Title>FL1 high, % of All events</Title>" in z and "<Title>A</Title>" in z and "<Title>B</Title>" in z
     assert len(re.findall(r"<d>[\d.]+</d>", z)) == 6
+    assert 'CreatedByProgram="GraphPad Prism"' in z            # Prism 10 warns about any other creating program
+    assert "Written by Flow Bench" in z
     # a file as Prism leaves it: an extra table of the user's own and the binary block that must not change
     mine = '<Table ID="Table7" XFormat="none" TableType="OneWay" EVFormat="AsteriskAfterNumber">\n<Title>My own table</Title>\n<YColumn Width="81" Decimals="2" Subcolumns="1">\n<Title>x</Title>\n<Subcolumn>\n<d>42</d>\n</Subcolumn>\n</YColumn>\n</Table>'
     tail = '\n<!--Analyses, graphs and layouts as compressed binary. Don&apos;t edit this part of the file.-->\n\n<Template dt:dt="bin.base64" xmlns:dt="urn:schemas-microsoft-com:datatypes">eF7svQmcXMV1AAAA\n</Template>\n</GraphPadPrismFile>\n'
     z = z.replace("</TableSequence>", '<Ref ID="Table7"></Ref>\n</TableSequence>').replace("</GraphPadPrismFile>\n", mine + tail)
+    # ... and with the header Flow Bench 0.1.0 wrote, which Prism 10 warns about: an update puts it right
+    z = z.replace('CreatedByProgram="GraphPad Prism" CreatedByVersion="8.3.1.332"', 'CreatedByProgram="Flow Bench" CreatedByVersion="0.1.0"')
+    assert 'CreatedByProgram="Flow Bench"' in z
     f = tmp_path / "stats.pzfx"
     f.write_text(z, encoding="utf-8")
     old = re.findall(r"<d>([\d.]+)</d>", z)[:6]
@@ -209,6 +214,7 @@ def test_prism_file_is_written_and_updated_in_place(proj, tmp_path):
     r = X.update_pzfx(proj, str(f))
     out = f.read_text(encoding="utf-8")
     assert r["updated"] == ["FL1 high, % of All events"] and r["added"] == ["FL1 high, events"] and (tmp_path / r["backup"]).exists()
+    assert 'CreatedByProgram="Flow Bench"' not in out and 'CreatedByProgram="GraphPad Prism"' in out
     assert out.endswith(tail) and mine in out                                # the user's table and the binary block are untouched
     assert re.findall(r"<d>([\d.]+)</d>", out)[:6] != old and out.count("<Table ") == 3
     assert 'ID="Table0"' in out and 'ID="Table8"' in out and '<Ref ID="Table8"></Ref>' in out

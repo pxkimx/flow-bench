@@ -74,7 +74,7 @@ def new_pzfx(p: Project) -> str:
     refs = "\n".join('<Ref ID="Table%d"%s></Ref>' % (i, ' Selected="1"' if i == 0 else "") for i in range(len(tables)))
     body = "\n".join(_table_xml(f"Table{i}", t) for i, t in enumerate(tables))
     return ('<?xml version="1.0" encoding="UTF-8"?><GraphPadPrismFile PrismXMLVersion="5.00">\n<Created>\n'
-            f'<OriginalVersion CreatedByProgram="Flow Bench" CreatedByVersion="{__version__}" Login="" DateTime="{now}"></OriginalVersion>\n'
+            f'<OriginalVersion {PRISM_HEADER} Login="" DateTime="{now}"></OriginalVersion>\n'
             "</Created>\n<InfoSequence>\n<Ref ID=\"Info0\" Selected=\"1\"></Ref>\n</InfoSequence>\n<Info ID=\"Info0\">\n"
             f"<Title>Flow Bench export</Title>\n<Notes>{_notes(p, tables)}</Notes>\n"
             f"<Constant><Name>Experiment Date</Name><Value>{_dt.date.today().isoformat()}</Value></Constant>\n"
@@ -86,6 +86,11 @@ def new_pzfx(p: Project) -> str:
             f"<TableSequence>\n{refs}\n</TableSequence>\n{body}\n</GraphPadPrismFile>\n")
 
 
+# Prism 10 warns "This file does not fully comply with the Prism XML format" and opens the file as Untitled
+# unless the header names Prism as the creating program (checked in Prism 10.2.3). The Info sheet says that
+# Flow Bench wrote the file.
+PRISM_HEADER = 'CreatedByProgram="GraphPad Prism" CreatedByVersion="8.3.1.332"'
+_OLD_HEADER = re.compile(r'CreatedByProgram="Flow Bench" CreatedByVersion="[^"]*"')
 _TABLE = re.compile(r"<Table\s[^>]*>.*?</Table>", re.S)
 
 
@@ -117,6 +122,7 @@ def update_pzfx(p: Project, path: str) -> dict:
         keep = block[:i] if i >= 0 else block[:block.rfind("</Table>")]
         return keep + _ycolumns(ours[title]) + "\n</Table>"
 
+    head = _OLD_HEADER.sub(PRISM_HEADER, head, count=1)      # files written by Flow Bench 0.1.0
     head = _TABLE.sub(swap, head)
     new = [t for t in tables if t["title"] not in updated and t["title"] not in skipped]
     if new:
