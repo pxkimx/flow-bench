@@ -4,6 +4,8 @@ Flow cytometry analysis on your own Mac: open FCS files, compensate, gate, check
 numbers to GraphPad Prism, Excel or a PDF report. It runs as a small local server and opens in your browser;
 nothing is uploaded.
 
+**Download for Mac, screenshot and an example report:** [paul-h-kim.com/software/flow-bench](https://paul-h-kim.com/software/flow-bench)
+
 It is organised the way ribbon-and-layout cytometry programs are: tools across the top, a data list and a gate
 view on the left, a page of plots in the middle that all follow the current file, and the selected gate, the
 Prism link and the checks on the right. Light and dark looks are built in.
@@ -36,7 +38,7 @@ Prism link and the checks on the right. Light and dark looks are built in.
 
 Needs macOS and Python 3.10 to 3.14 (3.12 from python.org is the safe choice).
 
-- **App**: `macos/build_app.sh` builds `Flow Bench.app`. Double-click it. The first start creates a private Python
+- **App**: download it from the page above, or build it: `macos/build_app.sh` builds `Flow Bench.app`. Double-click it. The first start creates a private Python
   environment in `~/Library/Application Support/Flow Bench/venv` (about a minute, needs internet once), then the
   app opens at `http://localhost:8800`. Closing its browser tab quits it completely.
 - **From a terminal**: `./launch.sh`
